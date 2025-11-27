@@ -1,0 +1,441 @@
+{
+  "liveEvents": [
+    {
+      "id": "evt_001",
+      "title": "Vente Flash - Mode Été 2024",
+      "description": "Découvrez notre collection été avec des réductions exceptionnelles !",
+      "startTime": "2024-01-15T10:00:00Z",
+      "endTime": "2024-01-15T12:00:00Z",
+      "status": "live",
+      "seller": {
+        "id": "seller_001",
+        "name": "Marie Dupont",
+        "storeName": "Fashion Store",
+        "avatar": "https://i.pravatar.cc/150?img=1"
+      },
+      "products": [
+        "prod_001",
+        "prod_002",
+        "prod_003"
+      ],
+      "featuredProduct": "prod_001",
+      "viewerCount": 245,
+      "streamUrl": "https://example.com/streams/evt_001.m3u8",
+      "replayUrl": null,
+      "thumbnailUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800"
+    },
+    {
+      "id": "evt_002",
+      "title": "Nouveautés Beauté & Cosmétiques",
+      "description": "Présentation des nouveaux produits de beauté avec démonstrations en direct",
+      "startTime": "2024-01-16T14:00:00Z",
+      "endTime": "2024-01-16T16:00:00Z",
+      "status": "scheduled",
+      "seller": {
+        "id": "seller_002",
+        "name": "Sophie Martin",
+        "storeName": "Beauty Corner",
+        "avatar": "https://i.pravatar.cc/150?img=2"
+      },
+      "products": [
+        "prod_004",
+        "prod_005"
+      ],
+      "featuredProduct": null,
+      "viewerCount": 0,
+      "streamUrl": null,
+      "replayUrl": null,
+      "thumbnailUrl": "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=800"
+    },
+    {
+      "id": "evt_003",
+      "title": "Électronique & High-Tech - Promotions",
+      "description": "Dernières technologies à prix réduits",
+      "startTime": "2024-01-14T09:00:00Z",
+      "endTime": "2024-01-14T11:00:00Z",
+      "status": "ended",
+      "seller": {
+        "id": "seller_003",
+        "name": "Jean Dubois",
+        "storeName": "Tech Store",
+        "avatar": "https://i.pravatar.cc/150?img=3"
+      },
+      "products": [
+        "prod_006",
+        "prod_007"
+      ],
+      "featuredProduct": null,
+      "viewerCount": 0,
+      "streamUrl": null,
+      "replayUrl": "https://example.com/replays/evt_003.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "Robe d'été légère",
+      "description": "Robe fluide et légère parfaite pour l'été. Matière respirante et coupe moderne.",
+      "price": 59.99,
+      "salePrice": 39.99,
+      "images": [
+        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800",
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400",
+      "stock": 15,
+      "variations": {
+        "size": ["S", "M", "L", "XL"],
+        "color": ["Blanc", "Bleu", "Rose"]
+      },
+      "isFeatured": true,
+      "featuredAt": "2024-01-15T10:30:00Z",
+      "category": "Mode",
+      "rating": 4.5,
+      "reviewsCount": 23
+    },
+    {
+      "id": "prod_002",
+      "name": "Short en lin",
+      "description": "Short confortable en lin naturel, idéal pour les journées chaudes.",
+      "price": 34.99,
+      "salePrice": 24.99,
+      "images": [
+        "https://images.unsplash.com/photo-1506629905607-ccf4c1e0c5b3?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1506629905607-ccf4c1e0c5b3?w=400",
+      "stock": 8,
+      "variations": {
+        "size": ["S", "M", "L"],
+        "color": ["Beige", "Kaki", "Blanc"]
+      },
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Mode",
+      "rating": 4.2,
+      "reviewsCount": 15
+    },
+    {
+      "id": "prod_003",
+      "name": "T-shirt coton bio",
+      "description": "T-shirt en coton biologique, doux et respectueux de l'environnement.",
+      "price": 29.99,
+      "salePrice": null,
+      "images": [
+        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+      "stock": 25,
+      "variations": {
+        "size": ["XS", "S", "M", "L", "XL"],
+        "color": ["Blanc", "Noir", "Gris", "Bleu"]
+      },
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Mode",
+      "rating": 4.7,
+      "reviewsCount": 42
+    },
+    {
+      "id": "prod_004",
+      "name": "Crème hydratante visage",
+      "description": "Crème hydratante enrichie en acide hyaluronique pour une peau éclatante.",
+      "price": 45.99,
+      "salePrice": 35.99,
+      "images": [
+        "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400",
+      "stock": 12,
+      "variations": {
+        "type": ["50ml", "100ml"]
+      },
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Beauté",
+      "rating": 4.8,
+      "reviewsCount": 67
+    },
+    {
+      "id": "prod_005",
+      "name": "Palette maquillage",
+      "description": "Palette de 12 couleurs mattes et nacrées pour tous les looks.",
+      "price": 32.99,
+      "salePrice": 24.99,
+      "images": [
+        "https://images.unsplash.com/photo-1512496015851-a90fb38c796f?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1512496015851-a90fb38c796f?w=400",
+      "stock": 20,
+      "variations": null,
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Beauté",
+      "rating": 4.6,
+      "reviewsCount": 89
+    },
+    {
+      "id": "prod_006",
+      "name": "Écouteurs sans fil",
+      "description": "Écouteurs Bluetooth avec réduction de bruit active et autonomie de 30h.",
+      "price": 129.99,
+      "salePrice": 99.99,
+      "images": [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+      "stock": 5,
+      "variations": {
+        "color": ["Noir", "Blanc", "Bleu"]
+      },
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Électronique",
+      "rating": 4.9,
+      "reviewsCount": 156
+    },
+    {
+      "id": "prod_007",
+      "name": "Smartphone dernière génération",
+      "description": "Smartphone avec écran OLED, triple caméra et processeur haute performance.",
+      "price": 899.99,
+      "salePrice": 749.99,
+      "images": [
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800"
+      ],
+      "thumbnail": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400",
+      "stock": 3,
+      "variations": {
+        "storage": ["128GB", "256GB", "512GB"],
+        "color": ["Noir", "Blanc", "Bleu"]
+      },
+      "isFeatured": false,
+      "featuredAt": null,
+      "category": "Électronique",
+      "rating": 4.7,
+      "reviewsCount": 234
+    }
+  ],
+  "chatMessages": {
+    "evt_001": [
+      {
+        "id": "msg_001",
+        "senderId": "user_001",
+        "senderName": "Alice",
+        "message": "Superbe robe ! Quelle taille recommandez-vous ?",
+        "timestamp": "2024-01-15T10:15:00Z",
+        "isVendor": false,
+        "replyTo": null,
+        "reactions": []
+      },
+      {
+        "id": "msg_002",
+        "senderId": "seller_001",
+        "senderName": "Marie Dupont",
+        "message": "Bonjour Alice ! Je recommande la taille M pour une coupe ajustée, ou L pour plus de confort.",
+        "timestamp": "2024-01-15T10:16:00Z",
+        "isVendor": true,
+        "replyTo": {
+          "id": "msg_001",
+          "sender": "Alice",
+          "message": "Superbe robe ! Quelle taille recommandez-vous ?"
+        },
+        "reactions": ["👍"]
+      },
+      {
+        "id": "msg_003",
+        "senderId": "user_002",
+        "senderName": "Bob",
+        "message": "Y a-t-il d'autres couleurs disponibles ?",
+        "timestamp": "2024-01-15T10:18:00Z",
+        "isVendor": false,
+        "replyTo": null,
+        "reactions": []
+      },
+      {
+        "id": "msg_004",
+        "senderId": "user_003",
+        "senderName": "Claire",
+        "message": "J'adore cette collection ! 🔥",
+        "timestamp": "2024-01-15T10:20:00Z",
+        "isVendor": false,
+        "replyTo": null,
+        "reactions": ["❤️", "🔥"]
+      },
+      {
+        "id": "msg_005",
+        "senderId": "seller_001",
+        "senderName": "Marie Dupont",
+        "message": "Oui Bob ! Nous avons cette robe en blanc, bleu et rose. Regardez les variations sur la fiche produit.",
+        "timestamp": "2024-01-15T10:21:00Z",
+        "isVendor": true,
+        "replyTo": {
+          "id": "msg_003",
+          "sender": "Bob",
+          "message": "Y a-t-il d'autres couleurs disponibles ?"
+        },
+        "reactions": []
+      }
+    ],
+    "evt_002": [],
+    "evt_003": []
+  },
+  "users": [
+    {
+      "id": "user_001",
+      "email": "alice@example.com",
+      "name": "Alice Martin",
+      "avatar": "https://i.pravatar.cc/150?img=5",
+      "createdAt": "2023-12-01T00:00:00Z"
+    },
+    {
+      "id": "user_002",
+      "email": "bob@example.com",
+      "name": "Bob Dupont",
+      "avatar": "https://i.pravatar.cc/150?img=6",
+      "createdAt": "2023-11-15T00:00:00Z"
+    },
+    {
+      "id": "user_003",
+      "email": "claire@example.com",
+      "name": "Claire Bernard",
+      "avatar": "https://i.pravatar.cc/150?img=7",
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order_001",
+      "userId": "user_001",
+      "liveEventId": "evt_001",
+      "items": [
+        {
+          "productId": "prod_001",
+          "name": "Robe d'été légère",
+          "quantity": 1,
+          "price": 39.99,
+          "selectedVariations": {
+            "size": "M",
+            "color": "Bleu"
+          }
+        }
+      ],
+      "subtotal": 39.99,
+      "shipping": 5.99,
+      "total": 45.98,
+      "status": "completed",
+      "createdAt": "2024-01-15T10:25:00Z",
+      "shippingAddress": {
+        "name": "Alice Martin",
+        "street": "123 Rue de la Mode",
+        "city": "Paris",
+        "postalCode": "75001",
+        "country": "France"
+      }
+    },
+    {
+      "id": "order_002",
+      "userId": "user_002",
+      "liveEventId": "evt_001",
+      "items": [
+        {
+          "productId": "prod_002",
+          "name": "Short en lin",
+          "quantity": 2,
+          "price": 24.99,
+          "selectedVariations": {
+            "size": "L",
+            "color": "Kaki"
+          }
+        },
+        {
+          "productId": "prod_003",
+          "name": "T-shirt coton bio",
+          "quantity": 1,
+          "price": 29.99,
+          "selectedVariations": {
+            "size": "M",
+            "color": "Noir"
+          }
+        }
+      ],
+      "subtotal": 79.97,
+      "shipping": 5.99,
+      "total": 85.96,
+      "status": "pending",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "shippingAddress": {
+        "name": "Bob Dupont",
+        "street": "456 Avenue des Champs",
+        "city": "Lyon",
+        "postalCode": "69001",
+        "country": "France"
+      }
+    }
+  ],
+  "cart": {
+    "userId": "user_001",
+    "items": [
+      {
+        "id": "cart_item_001",
+        "productId": "prod_001",
+        "quantity": 1,
+        "selectedVariations": {
+          "size": "M",
+          "color": "Bleu"
+        }
+      }
+    ],
+    "updatedAt": "2024-01-15T10:15:00Z"
+  },
+  "categories": [
+    {
+      "id": "cat_001",
+      "name": "Mode",
+      "slug": "mode",
+      "icon": "👗"
+    },
+    {
+      "id": "cat_002",
+      "name": "Beauté",
+      "slug": "beaute",
+      "icon": "💄"
+    },
+    {
+      "id": "cat_003",
+      "name": "Électronique",
+      "slug": "electronique",
+      "icon": "📱"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_001",
+      "userId": "user_001",
+      "type": "new_order",
+      "title": "Commande confirmée",
+      "message": "Votre commande #order_001 a été confirmée",
+      "read": false,
+      "createdAt": "2024-01-15T10:25:00Z"
+    },
+    {
+      "id": "notif_002",
+      "userId": "user_001",
+      "type": "product_featured",
+      "title": "Nouveau produit mis en avant",
+      "message": "La robe d'été légère est maintenant mise en avant",
+      "read": false,
+      "createdAt": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "notif_003",
+      "userId": "user_002",
+      "type": "live_event_starting",
+      "title": "Événement bientôt en ligne",
+      "message": "Nouveautés Beauté & Cosmétiques commence dans 1 heure",
+      "read": false,
+      "createdAt": "2024-01-16T13:00:00Z"
+    }
+  ]
+}
+
