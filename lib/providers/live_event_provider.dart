@@ -1,10 +1,46 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Provider for managing live event state.
-///
-/// Replace the type and implementation with your real logic later.
-final liveEventProvider = Provider<void>((ref) {
-  // TODO: implement live event provider.
+import '../models/live_event.dart';
+import '../models/product.dart';
+import '../services/mock_api_service.dart';
+
+/// Provider exposing a singleton [MockApiService].
+final mockApiServiceProvider = Provider<MockApiService>((ref) {
+  return MockApiService();
 });
 
+/// Provider that asynchronously loads all live events from the mock API.
+final liveEventsProvider =
+    FutureProvider<List<LiveEvent>>((ref) async {
+  final api = ref.watch(mockApiServiceProvider);
+  return api.getLiveEvents();
+});
+
+/// Provider for a single live event by id.
+final liveEventByIdProvider =
+    FutureProvider.family<LiveEvent, String>((ref, id) async {
+  final api = ref.watch(mockApiServiceProvider);
+  return api.getLiveEventById(id);
+});
+
+/// Provider for products of a specific event.
+final eventProductsProvider =
+    FutureProvider.family<List<Product>, String>((ref, eventId) async {
+  final api = ref.watch(mockApiServiceProvider);
+  return api.getProducts(eventId);
+});
+
+/// Provider for a single product by id.
+final productByIdProvider =
+    FutureProvider.family<Product, String>((ref, id) async {
+  final api = ref.watch(mockApiServiceProvider);
+  return api.getProductById(id);
+});
+
+/// Provider for all products (used for "similar products").
+final allProductsProvider =
+    FutureProvider<List<Product>>((ref) async {
+  final api = ref.watch(mockApiServiceProvider);
+  return api.getAllProducts();
+});
 
