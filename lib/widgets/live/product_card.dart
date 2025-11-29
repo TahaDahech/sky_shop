@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../models/product.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
-import '../../providers/live_event_provider.dart';
+import '../../widgets/common/login_dialog.dart';
 
 class ProductCard extends ConsumerWidget {
   const ProductCard({
@@ -18,17 +20,34 @@ class ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 600;
+    final imageSize = isSmall ? 60.0 : 72.0;
+    final padding = isSmall ? 6.0 : 8.0;
 
-    return Card(
-      elevation: isFeatured ? 4 : 1,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isFeatured 
+              ? const Color(0xFFF59E0B).withOpacity(0.3)
+              : Colors.grey[200]!,
+          width: isFeatured ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isFeatured ? 0.08 : 0.04),
+            blurRadius: isFeatured ? 12 : 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {},
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(padding),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -36,22 +55,42 @@ class ProductCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
                   imageUrl: product.thumbnail,
-                  width: 72,
-                  height: 72,
+                  width: imageSize,
+                  height: imageSize,
                   fit: BoxFit.cover,
                   placeholder: (context, url) =>
-                      const SizedBox(
-                        width: 72,
-                        height: 72,
+                      SizedBox(
+                        width: imageSize,
+                        height: imageSize,
                         child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: const Color(0xFF4A9FCC),
+                          ),
                         ),
                       ),
-                  errorWidget: (context, url, error) =>
-                      const Icon(Icons.image_not_supported),
+                  errorWidget: (context, url, error) => Container(
+                    width: imageSize,
+                    height: imageSize,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'assets/images/no_image.svg',
+                        width: isSmall ? 24 : 32,
+                        height: isSmall ? 24 : 32,
+                        colorFilter: ColorFilter.mode(
+                          Colors.grey[400]!,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: isSmall ? 6 : 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,75 +100,149 @@ class ProductCard extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             product.name,
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Color(0xFF1E293B),
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (isFeatured)
                           Container(
-                            margin: const EdgeInsets.only(left: 4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                            margin: EdgeInsets.only(left: isSmall ? 2 : 4),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmall ? 4 : 6,
+                              vertical: isSmall ? 1 : 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.orangeAccent,
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF59E0B), Color(0xFFEAB308)],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'FEATURED',
+                            child: Text(
+                              'VEDETTE',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: isSmall ? 8 : 9,
                                 fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: isSmall ? 2 : 4),
                     Text(
                       product.category,
-                      style: theme.textTheme.bodySmall,
+                      style: TextStyle(
+                        fontSize: isSmall ? 11 : 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: isSmall ? 4 : 6),
                     Row(
                       children: [
-                        Text(
-                          '${product.salePrice ?? product.price}€',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
+                        Flexible(
+                          child: Text(
+                            '${product.salePrice ?? product.price}€',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF4A9FCC),
+                              fontSize: isSmall ? 14 : 16,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (product.salePrice != null)
                           Padding(
-                            padding: const EdgeInsets.only(left: 6),
+                            padding: EdgeInsets.only(left: isSmall ? 4 : 6),
                             child: Text(
                               '${product.price}€',
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              style: TextStyle(
                                 decoration: TextDecoration.lineThrough,
+                                fontSize: isSmall ? 11 : 12,
+                                color: Colors.grey[500],
                               ),
                             ),
                           ),
-                        const Spacer(),
-                        SizedBox(
-                          height: 32,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              // Use cart service with persistence
-                              final cartService = ref.read(cartServiceProvider);
-                              await cartService.addToCart(product.id, 1);
-                              ref.invalidate(cartProvider);
-                            },
-                            child: const Text('Ajouter'),
-                          ),
-                        ),
                       ],
                     ),
                   ],
+                ),
+              ),
+              SizedBox(width: isSmall ? 6 : 8),
+              SizedBox(
+                height: isSmall ? 28 : 32,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final isLoggedIn = ref.read(isLoggedInProvider);
+                    
+                    if (!isLoggedIn) {
+                      // Show login dialog
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => const LoginDialog(),
+                      );
+                      
+                      if (result == true && context.mounted) {
+                        // User logged in, add to cart after login
+                        final cartService = ref.read(cartServiceProvider);
+                        await cartService.addToCart(product.id, 1);
+                        ref.invalidate(cartProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Produit ajouté au panier'),
+                              backgroundColor: const Color(0xFF4A9FCC),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      // User is logged in, add to cart
+                      final cartService = ref.read(cartServiceProvider);
+                      await cartService.addToCart(product.id, 1);
+                      ref.invalidate(cartProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Produit ajouté au panier'),
+                            backgroundColor: const Color(0xFF4A9FCC),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4A9FCC),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmall ? 10 : 14,
+                      vertical: isSmall ? 6 : 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: TextStyle(
+                      fontSize: isSmall ? 11 : 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text('Ajouter'),
                 ),
               ),
             ],

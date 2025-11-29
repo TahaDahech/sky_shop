@@ -5,7 +5,9 @@ import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/cart.dart';
+import '../models/category.dart';
 import '../models/live_event.dart';
+import '../models/notification.dart' as models;
 import '../models/order.dart';
 import '../models/product.dart';
 
@@ -39,9 +41,18 @@ class MockApiService {
   Future<void> _loadMockData() async {
     if (_data != null) return;
 
-    final jsonString =
-        await rootBundle.loadString('assets/mock-api-data.json');
-    _data = json.decode(jsonString) as Map<String, dynamic>;
+    try {
+      final jsonString =
+          await rootBundle.loadString('assets/mock-api-data.json');
+      final decoded = json.decode(jsonString);
+      if (decoded is Map<String, dynamic>) {
+        _data = decoded;
+      } else {
+        throw Exception('Invalid JSON format: expected Map');
+      }
+    } catch (e) {
+      throw Exception('Failed to load mock data: $e');
+    }
   }
 
   /// Simulates network delay and randomly throws HTTP-like errors.
@@ -74,7 +85,13 @@ class MockApiService {
   Future<LiveEvent> getLiveEventById(String id) async {
     await _loadMockData();
     return _withNetworkSimulation(() async {
-      final eventsJson = _data!['liveEvents'] as List<dynamic>;
+      if (_data == null) {
+        throw const MockApiException(500, 'Données non chargées');
+      }
+      final eventsJson = _data!['liveEvents'] as List<dynamic>?;
+      if (eventsJson == null) {
+        throw const MockApiException(500, 'Aucun événement trouvé dans les données');
+      }
       final eventJson = eventsJson.cast<Map<String, dynamic>>().firstWhere(
             (e) => e['id'] == id,
             orElse: () => throw const MockApiException(
@@ -296,6 +313,84 @@ class MockApiService {
           .map(Order.fromJson)
           .toList();
       return filtered;
+    });
+  }
+
+  /// Returns all categories.
+  Future<List<Category>> getCategories() async {
+    await _loadMockData();
+    return _withNetworkSimulation(() async {
+      final categoriesJson = _data!['categories'] as List<dynamic>;
+      return categoriesJson
+          .cast<Map<String, dynamic>>()
+          .map(Category.fromJson)
+          .toList();
+    });
+  }
+
+  /// Returns products filtered by category.
+  Future<List<Product>> getProductsByCategory(String categoryName) async {
+    await _loadMockData();
+    return _withNetworkSimulation(() async {
+      final productsJson = _data!['products'] as List<dynamic>;
+      return productsJson
+          .cast<Map<String, dynamic>>()
+          .where((p) => p['category'] == categoryName)
+          .map(Product.fromJson)
+          .toList();
+    });
+  }
+
+  /// Searches products by name, description, or category.
+  Future<List<Product>> searchProducts(String query) async {
+    await _loadMockData();
+    return _withNetworkSimulation(() async {
+      final productsJson = _data!['products'] as List<dynamic>;
+      final lowerQuery = query.toLowerCase();
+      return productsJson
+          .cast<Map<String, dynamic>>()
+          .where((p) {
+            final name = (p['name'] as String).toLowerCase();
+            final description = (p['description'] as String).toLowerCase();
+            final category = (p['category'] as String).toLowerCase();
+            return name.contains(lowerQuery) ||
+                description.contains(lowerQuery) ||
+                category.contains(lowerQuery);
+          })
+          .map(Product.fromJson)
+          .toList();
+    });
+  }
+
+  /// Returns all notifications for the current user.
+  Future<List<models.AppNotification>> getNotifications() async {
+    await _loadMockData();
+    return _withNetworkSimulation(() async {
+      final notificationsJson =
+          (_data!['notifications'] as List<dynamic>? ?? <dynamic>[])
+              .cast<Map<String, dynamic>>();
+      return notificationsJson
+          .where((n) => n['userId'] == currentUserId)
+          .map(models.AppNotification.fromJson)
+          .toList();
+    });
+  }
+
+  /// Marks a notification as read.
+  Future<void> markNotificationAsRead(String notificationId) async {
+    await _loadMockData();
+    return _withNetworkSimulation(() async {
+      final notificationsJson =
+          (_data!['notifications'] as List<dynamic>? ?? <dynamic>[])
+              .cast<Map<String, dynamic>>();
+      final notification = notificationsJson.firstWhere(
+        (n) => n['id'] == notificationId,
+        orElse: () => throw const MockApiException(
+          404,
+          'Notification introuvable',
+        ),
+      );
+      notification['read'] = true;
     });
   }
 }

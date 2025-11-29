@@ -2,40 +2,86 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/app_user.dart';
 import '../models/cart.dart';
+import '../models/order.dart';
 
 /// Service for managing local storage using SharedPreferences.
 /// Handles cart persistence and other user interactions.
 class StorageService {
-  static const String _cartKey = 'cart_data';
+  static const String _cartKeyPrefix = 'cart_data_';
+  static const String _ordersKeyPrefix = 'orders_';
   static const String _favoritesKey = 'favorite_products';
   static const String _recentlyViewedKey = 'recently_viewed_products';
   static const String _userIdKey = 'current_user_id';
+  static const String _userDataKey = 'current_user_data';
   static const String _userPreferencesKey = 'user_preferences';
 
   /// Gets the SharedPreferences instance.
   Future<SharedPreferences> get _prefs async =>
       await SharedPreferences.getInstance();
 
-  // ==================== Cart Operations ====================
+  // ==================== User Operations ====================
 
-  /// Saves the cart to local storage.
-  Future<bool> saveCart(Cart cart) async {
+  /// Saves the current user to local storage.
+  Future<bool> saveUser(AppUser user) async {
     try {
       final prefs = await _prefs;
-      final cartJson = jsonEncode(cart.toJson());
-      return await prefs.setString(_cartKey, cartJson);
+      final userJson = jsonEncode(user.toJson());
+      await prefs.setString(_userDataKey, userJson);
+      return await prefs.setString(_userIdKey, user.id);
     } catch (e) {
       return false;
     }
   }
 
-  /// Loads the cart from local storage.
-  /// Returns null if no cart is saved.
-  Future<Cart?> loadCart() async {
+  /// Loads the current user from local storage.
+  /// Returns null if no user is saved.
+  Future<AppUser?> loadUser() async {
     try {
       final prefs = await _prefs;
-      final cartJson = prefs.getString(_cartKey);
+      final userJson = prefs.getString(_userDataKey);
+      if (userJson == null) return null;
+
+      final userMap = jsonDecode(userJson) as Map<String, dynamic>;
+      return AppUser.fromJson(userMap);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Clears the current user from local storage.
+  Future<bool> clearUser() async {
+    try {
+      final prefs = await _prefs;
+      await prefs.remove(_userDataKey);
+      return await prefs.remove(_userIdKey);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== Cart Operations ====================
+
+  /// Saves the cart to local storage (user-specific).
+  Future<bool> saveCart(Cart cart) async {
+    try {
+      final prefs = await _prefs;
+      final cartKey = '$_cartKeyPrefix${cart.userId}';
+      final cartJson = jsonEncode(cart.toJson());
+      return await prefs.setString(cartKey, cartJson);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads the cart from local storage for a specific user.
+  /// Returns null if no cart is saved.
+  Future<Cart?> loadCart(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final cartKey = '$_cartKeyPrefix$userId';
+      final cartJson = prefs.getString(cartKey);
       if (cartJson == null) return null;
 
       final cartMap = jsonDecode(cartJson) as Map<String, dynamic>;
@@ -45,11 +91,12 @@ class StorageService {
     }
   }
 
-  /// Clears the cart from local storage.
-  Future<bool> clearCart() async {
+  /// Clears the cart from local storage for a specific user.
+  Future<bool> clearCart(String userId) async {
     try {
       final prefs = await _prefs;
-      return await prefs.remove(_cartKey);
+      final cartKey = '$_cartKeyPrefix$userId';
+      return await prefs.remove(cartKey);
     } catch (e) {
       return false;
     }
@@ -259,11 +306,76 @@ class StorageService {
   Future<bool> clearUserData() async {
     try {
       final prefs = await _prefs;
-      await prefs.remove(_cartKey);
+      final userId = await getUserId();
+      if (userId != null) {
+        await clearCart(userId);
+        await clearOrders(userId);
+      }
       await prefs.remove(_favoritesKey);
       await prefs.remove(_recentlyViewedKey);
       await prefs.remove(_userIdKey);
+      await prefs.remove(_userDataKey);
       return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== Orders Operations ====================
+
+  /// Saves an order to local storage (user-specific).
+  Future<bool> saveOrder(Order order) async {
+    try {
+      final orders = await loadOrders(order.userId);
+      // Check if order already exists
+      final existingIndex = orders.indexWhere((o) => o.id == order.id);
+      if (existingIndex >= 0) {
+        orders[existingIndex] = order;
+      } else {
+        orders.add(order);
+      }
+      return await _saveOrders(order.userId, orders);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads all orders from local storage for a specific user.
+  /// Returns empty list if no orders are saved.
+  Future<List<Order>> loadOrders(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final ordersKey = '$_ordersKeyPrefix$userId';
+      final ordersJson = prefs.getString(ordersKey);
+      if (ordersJson == null) return [];
+
+      final ordersList = jsonDecode(ordersJson) as List<dynamic>;
+      return ordersList
+          .map((e) => Order.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Saves a list of orders to local storage for a specific user.
+  Future<bool> _saveOrders(String userId, List<Order> orders) async {
+    try {
+      final prefs = await _prefs;
+      final ordersKey = '$_ordersKeyPrefix$userId';
+      final ordersJson = jsonEncode(orders.map((o) => o.toJson()).toList());
+      return await prefs.setString(ordersKey, ordersJson);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Clears all orders from local storage for a specific user.
+  Future<bool> clearOrders(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final ordersKey = '$_ordersKeyPrefix$userId';
+      return await prefs.remove(ordersKey);
     } catch (e) {
       return false;
     }
