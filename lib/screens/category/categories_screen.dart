@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../models/category.dart';
 import '../../providers/category_provider.dart';
+import '../../widgets/common/footer.dart';
 import '../../widgets/common/top_bar.dart';
 
 class CategoriesScreen extends ConsumerWidget {
@@ -102,6 +103,13 @@ class CategoriesScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Footer(),
             ),
           ),
         ],

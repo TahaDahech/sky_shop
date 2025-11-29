@@ -1,12 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../models/product.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/common/login_dialog.dart';
+import '../../widgets/common/optimized_image.dart';
 
 class ProductCard extends ConsumerWidget {
   const ProductCard({
@@ -25,25 +24,26 @@ class ProductCard extends ConsumerWidget {
     final imageSize = isSmall ? 60.0 : 72.0;
     final padding = isSmall ? 6.0 : 8.0;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isFeatured 
-              ? const Color(0xFFF59E0B).withOpacity(0.3)
-              : Colors.grey[200]!,
-          width: isFeatured ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isFeatured ? 0.08 : 0.04),
-            blurRadius: isFeatured ? 12 : 8,
-            offset: const Offset(0, 2),
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isFeatured 
+                ? const Color(0xFFF59E0B).withOpacity(0.3)
+                : Colors.grey[200]!,
+            width: isFeatured ? 2 : 1,
           ),
-        ],
-      ),
-      child: InkWell(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isFeatured ? 0.08 : 0.04),
+              blurRadius: isFeatured ? 12 : 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: InkWell(
         onTap: () {},
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -51,43 +51,14 @@ class ProductCard extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
+              RepaintBoundary(
+                child: OptimizedImage(
                   imageUrl: product.thumbnail,
                   width: imageSize,
                   height: imageSize,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      SizedBox(
-                        width: imageSize,
-                        height: imageSize,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: const Color(0xFF4A9FCC),
-                          ),
-                        ),
-                      ),
-                  errorWidget: (context, url, error) => Container(
-                    width: imageSize,
-                    height: imageSize,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/no_image.svg',
-                        width: isSmall ? 24 : 32,
-                        height: isSmall ? 24 : 32,
-                        colorFilter: ColorFilter.mode(
-                          Colors.grey[400]!,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  errorIconSize: isSmall ? 24 : 32,
                 ),
               ),
               SizedBox(width: isSmall ? 6 : 8),
@@ -248,6 +219,7 @@ class ProductCard extends ConsumerWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

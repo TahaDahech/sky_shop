@@ -1,13 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/cart.dart';
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/live_event_provider.dart';
+import '../../widgets/common/footer.dart';
+import '../../widgets/common/optimized_image.dart';
 import '../../widgets/common/top_bar.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -63,7 +63,9 @@ class CartScreen extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final item = cart.items[index];
-                    return _CartItemCard(cartItem: item);
+                    return RepaintBoundary(
+                      child: _CartItemCard(cartItem: item),
+                    );
                   },
                   childCount: cart.items.length,
                 ),
@@ -103,9 +105,16 @@ class CartScreen extends ConsumerWidget {
             child: asyncCart.maybeWhen(
               data: (Cart cart) {
                 if (cart.items.isEmpty) return const SizedBox.shrink();
-                return _CartSummary(cart: cart);
+                return RepaintBoundary(child: _CartSummary(cart: cart));
               },
               orElse: () => const SizedBox.shrink(),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Footer(),
             ),
           ),
         ],
@@ -144,32 +153,14 @@ class _CartItemCard extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
+              RepaintBoundary(
+                child: OptimizedImage(
                   imageUrl: product.thumbnail,
                   width: 100,
                   height: 100,
                   fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/no_image.svg',
-                        width: 40,
-                        height: 40,
-                        colorFilter: ColorFilter.mode(
-                          Colors.grey[400]!,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  errorIconSize: 40,
                 ),
               ),
               const SizedBox(width: 16),

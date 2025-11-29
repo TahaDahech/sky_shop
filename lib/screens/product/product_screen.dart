@@ -1,7 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product.dart';
@@ -9,6 +7,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/live_event_provider.dart';
 import '../../widgets/common/login_dialog.dart';
+import '../../widgets/common/footer.dart';
+import '../../widgets/common/optimized_image.dart';
 import '../../widgets/common/top_bar.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -46,6 +46,16 @@ class _ProductDetailScreenState
                 ),
               ),
             ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 48),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: const Footer(),
+              ),
+            ),
           ],
         ),
       ),
@@ -76,6 +86,16 @@ class _ProductDetailScreenState
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 48),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: const Footer(),
               ),
             ),
           ],
@@ -142,6 +162,16 @@ class _ProductDetailScreenState
                             ),
                     ),
                   ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 48),
+                  ),
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: const Footer(),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -189,26 +219,13 @@ class _ProductDetailScreenState
                     },
                     itemBuilder: (context, index) {
                       final url = images[index];
-                      return Hero(
-                        tag: 'product_${product.id}_image_$index',
-                        child: CachedNetworkImage(
-                          imageUrl: url,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                'assets/images/no_image.svg',
-                                width: 64,
-                                height: 64,
-                                colorFilter: ColorFilter.mode(
-                                  Colors.grey[400]!,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
+                      return RepaintBoundary(
+                        child: Hero(
+                          tag: 'product_${product.id}_image_$index',
+                          child: OptimizedImage(
+                            imageUrl: url,
+                            fit: BoxFit.cover,
+                            placeholderColor: Colors.grey[200],
                           ),
                         ),
                       );
@@ -638,32 +655,8 @@ class _ProductDetailScreenState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(16),
-                                  ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: p.thumbnail,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    errorWidget: (context, url, error) =>
-                                        Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[100],
-                                      ),
-                                      child: Center(
-                                        child: SvgPicture.asset(
-                                          'assets/images/no_image.svg',
-                                          width: 40,
-                                          height: 40,
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.grey[400]!,
-                                            BlendMode.srcIn,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                child: ProductThumbnail(
+                                  imageUrl: p.thumbnail,
                                 ),
                               ),
                               Padding(

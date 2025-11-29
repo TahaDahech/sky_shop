@@ -52,37 +52,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
       data: (Cart cart) {
         return asyncTotals.when(
-          loading: () => Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text(
-                'Finaliser la commande',
-                style: TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
-            ),
-            body: const Center(child: CircularProgressIndicator()),
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           ),
           error: (e, _) => Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text(
-                'Finaliser la commande',
-                style: TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
-            ),
-            body: Center(child: Text('Erreur de chargement des prix : $e')),
+            appBar: AppBar(title: const Text('Checkout')),
+            body: Center(child: Text('Erreur de calcul des totaux : $e')),
           ),
           data: (CartTotals totals) {
             return Scaffold(
@@ -103,11 +78,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 800;
 
-                  final summary = _buildSummary(
-                    context,
-                    cart,
-                    totals,
-                  );
+                  final summary = _buildSummary(context, totals);
                   final form = _buildForm(context);
 
                   return SingleChildScrollView(
@@ -120,16 +91,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(flex: 2, child: form),
-                                  const SizedBox(width: 24),
-                                  Expanded(flex: 1, child: summary),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 1, child: RepaintBoundary(child: summary)),
                                 ],
                               )
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  summary,
+                                  RepaintBoundary(child: summary),
                                   const SizedBox(height: 24),
-                                  form,
+                                  RepaintBoundary(child: form),
                                 ],
                               ),
                       ),
@@ -190,7 +161,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Widget _buildSummary(
     BuildContext context,
-    Cart cart,
     CartTotals totals,
   ) {
     return Container(
@@ -237,9 +207,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 20),
             ...totals.items.map(
-              (itemWithProduct) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
+              (itemWithProduct) => RepaintBoundary(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
                   children: [
                     Expanded(
                       child: Column(
@@ -252,10 +223,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF1E293B),
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${(itemWithProduct.itemTotal / itemWithProduct.cartItem.quantity).toStringAsFixed(2)}€ × ${itemWithProduct.cartItem.quantity}',
+                            '€${(itemWithProduct.itemTotal / itemWithProduct.cartItem.quantity).toStringAsFixed(2)} × ${itemWithProduct.cartItem.quantity}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -265,7 +238,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ),
                     Text(
-                      '${itemWithProduct.itemTotal.toStringAsFixed(2)}€',
+                      '€${itemWithProduct.itemTotal.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -273,6 +246,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ),
@@ -288,7 +262,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                 ),
                 Text(
-                  '${totals.subtotal.toStringAsFixed(2)}€',
+                  '€${totals.subtotal.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -309,7 +283,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                 ),
                 Text(
-                  '${totals.shipping.toStringAsFixed(2)}€',
+                  '€${totals.shipping.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -341,7 +315,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                   ),
                   Text(
-                    '${totals.total.toStringAsFixed(2)}€',
+                    '€${totals.total.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

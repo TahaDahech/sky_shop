@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product.dart';
 import '../../providers/category_provider.dart';
+import '../../widgets/common/footer.dart';
+import '../../widgets/common/optimized_image.dart';
 import '../../widgets/common/top_bar.dart';
 
 class CategoryProductsScreen extends ConsumerWidget {
@@ -88,7 +88,9 @@ class CategoryProductsScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final product = products[index];
-                      return _ProductCard(product: product);
+                      return RepaintBoundary(
+                        child: _ProductCard(product: product),
+                      );
                     },
                     childCount: products.length,
                   ),
@@ -123,6 +125,16 @@ class CategoryProductsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 48),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Footer(),
             ),
           ),
         ],
@@ -160,34 +172,9 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                child: CachedNetworkImage(
+              child: RepaintBoundary(
+                child: ProductThumbnail(
                   imageUrl: product.thumbnail,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorWidget: (context, url, error) => Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
-                    ),
-                    child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/no_image.svg',
-                        width: 64,
-                        height: 64,
-                        colorFilter: ColorFilter.mode(
-                          Colors.grey[400]!,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               ),
             ),

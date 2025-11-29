@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/notification.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/live_event_provider.dart';
+import '../../widgets/common/footer.dart';
 import '../../widgets/common/top_bar.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -110,6 +111,13 @@ class NotificationsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Footer(),
             ),
           ),
         ],

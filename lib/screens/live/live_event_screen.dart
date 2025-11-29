@@ -8,6 +8,7 @@ import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/live_event_provider.dart';
 import '../../providers/socket_provider.dart';
+import '../../widgets/common/footer.dart';
 import '../../widgets/common/top_bar.dart';
 import '../../widgets/live/cart_drawer.dart';
 import '../../widgets/live/chat_widget.dart';
@@ -104,6 +105,13 @@ class _LiveEventScreenState extends ConsumerState<LiveEventScreen> {
                 ),
               ),
             ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: const Footer(),
+              ),
+            ),
           ],
         ),
       ),
@@ -129,6 +137,9 @@ class _LiveEventScreenState extends ConsumerState<LiveEventScreen> {
                         : isMedium
                             ? _buildMediumLayout(context, event, asyncProducts, cartItemCount)
                             : _buildMobileLayout(context, event, asyncProducts, cartItemCount),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Footer(),
                   ),
                 ],
               ),

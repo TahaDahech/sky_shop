@@ -6,7 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/live_event.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/live_event_provider.dart';
-import '../../utils/constants.dart';
+import '../../widgets/common/footer.dart';
+import '../../widgets/common/optimized_image.dart';
 import '../../widgets/common/top_bar.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -84,37 +85,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 final upcoming = events.where((e) => e.status == 'scheduled').toList();
                 final replays = events.where((e) => e.status == 'ended').toList();
 
-                return SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      if (live.isNotEmpty)
-                        _EventSection(
-                          key: _liveSectionKey,
-                          title: 'En direct maintenant',
-                          subtitle: 'Rejoignez les événements live',
-                          events: live,
-                          icon: Icons.play_circle_filled,
-                          accentColor: const Color(0xFFEF4444),
-                        ),
-                      if (upcoming.isNotEmpty)
-                        _EventSection(
-                          title: 'Prochainement',
-                          subtitle: 'Ne manquez pas ces événements',
-                          events: upcoming,
-                          svgPath: 'assets/images/hour.svg',
-                          accentColor: const Color(0xFFF59E0B),
-                        ),
-                      if (replays.isNotEmpty)
-                        _EventSection(
-                          title: 'Replays disponibles',
-                          subtitle: 'Revivez les meilleurs moments',
-                          events: replays,
-                          svgPath: 'assets/images/replay.svg',
-                          accentColor: const Color(0xFF3B82F6),
-                        ),
-                      _ModernFooter(key: _footerKey),
-                    ],
-                  ),
+                return SliverMainAxisGroup(
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          if (live.isNotEmpty)
+                            _EventSection(
+                              key: _liveSectionKey,
+                              title: 'En direct maintenant',
+                              subtitle: 'Rejoignez les événements live',
+                              events: live,
+                              icon: Icons.play_circle_filled,
+                              accentColor: const Color(0xFFEF4444),
+                            ),
+                          if (upcoming.isNotEmpty)
+                            _EventSection(
+                              title: 'Prochainement',
+                              subtitle: 'Ne manquez pas ces événements',
+                              events: upcoming,
+                              svgPath: 'assets/images/hour.svg',
+                              accentColor: const Color(0xFFF59E0B),
+                            ),
+                          if (replays.isNotEmpty)
+                            _EventSection(
+                              title: 'Replays disponibles',
+                              subtitle: 'Revivez les meilleurs moments',
+                              events: replays,
+                              svgPath: 'assets/images/replay.svg',
+                              accentColor: const Color(0xFF3B82F6),
+                            ),
+                        ],
+                      ),
+                    ),
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: const Footer(key: Key('footer')),
+                      ),
+                    ),
+                  ],
                 );
               },
               loading: () => const SliverFillRemaining(
@@ -476,7 +487,9 @@ class _EventSection extends StatelessWidget {
             itemCount: events.length,
             itemBuilder: (context, index) {
               final event = events[index];
-              return _ModernEventCard(event: event, accentColor: accentColor);
+              return RepaintBoundary(
+                child: _ModernEventCard(event: event, accentColor: accentColor),
+              );
             },
           ),
         ],
@@ -536,29 +549,11 @@ class _ModernEventCardState extends State<_ModernEventCard> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        child: Image.network(
-                          widget.event.thumbnailUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                'assets/images/no_image.svg',
-                                width: 80,
-                                height: 80,
-                                colorFilter: ColorFilter.mode(
-                                  Colors.grey[400]!,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
+                      RepaintBoundary(
+                        child: HeroImage(
+                          imageUrl: widget.event.thumbnailUrl,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20),
                           ),
                         ),
                       ),
@@ -756,171 +751,6 @@ class _ModernStatusBadge extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ModernFooter extends StatelessWidget {
-  const _ModernFooter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 48),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 24,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1400),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF4A9FCC), Color(0xFF5BB7E0)],
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.cloud, color: Colors.white, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              AppConstants.appName.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Shopping en direct, moderne et sécurisé.\nDécouvrez une nouvelle façon de faire vos achats.',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                            height: 1.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                  Wrap(
-                    spacing: 48,
-                    runSpacing: 32,
-                    children: [
-                      _FooterColumn(
-                        title: 'Entreprise',
-                        links: ['À propos', 'Blog', 'Carrières', 'Presse'],
-                      ),
-                      _FooterColumn(
-                        title: 'Support',
-                        links: ['Centre d\'aide', 'Contact', 'FAQ', 'Statut'],
-                      ),
-                      _FooterColumn(
-                        title: 'Légal',
-                        links: ['Confidentialité', 'Conditions', 'Cookies'],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 48),
-              Divider(color: Colors.grey[800]),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '© ${DateTime.now().year} ${AppConstants.appName}. Tous droits réservés.',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.facebook),
-                        onPressed: () {},
-                        color: Colors.grey[500],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.photo_camera),
-                        onPressed: () {},
-                        color: Colors.grey[500],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.tiktok),
-                        onPressed: () {},
-                        color: Colors.grey[500],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FooterColumn extends StatelessWidget {
-  final String title;
-  final List<String> links;
-
-  const _FooterColumn({required this.title, required this.links});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ...links.map((link) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () {},
-            child: Text(
-              link,
-              style: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 14,
-              ),
-            ),
-          ),
-        )),
-      ],
     );
   }
 }

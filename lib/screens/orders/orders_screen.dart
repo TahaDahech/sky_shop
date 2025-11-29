@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../models/order.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../widgets/common/footer.dart';
 import '../../widgets/common/top_bar.dart';
 
 class OrdersScreen extends ConsumerWidget {
@@ -27,23 +27,13 @@ class OrdersScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => context.pop(),
-                        color: const Color(0xFF1E293B),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Mes commandes',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Mes commandes',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (currentUser == null)
@@ -157,6 +147,13 @@ class OrdersScreen extends ConsumerWidget {
                     ),
                 ],
               ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Footer(),
             ),
           ),
         ],
