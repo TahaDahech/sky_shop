@@ -76,11 +76,14 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                 );
               }
 
+              final width = MediaQuery.of(context).size.width;
+              final crossAxisCount = width >= 1400 ? 4 : (width >= 1024 ? 3 : (width >= 600 ? 2 : 1));
+
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
                     mainAxisSpacing: 24,
                     crossAxisSpacing: 24,
                     childAspectRatio: 0.75,

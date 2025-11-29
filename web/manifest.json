@@ -1,11 +1,11 @@
 {
-    "name": "sky_shop",
-    "short_name": "sky_shop",
+    "name": "Sky Shop",
+    "short_name": "Sky Shop",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A modern e-commerce application with live shopping events.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

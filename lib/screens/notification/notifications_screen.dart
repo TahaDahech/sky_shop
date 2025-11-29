@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/notification.dart';
 import '../../providers/notification_provider.dart';
-import '../../providers/live_event_provider.dart';
 import '../../widgets/common/footer.dart';
 import '../../widgets/common/top_bar.dart';
 
@@ -33,18 +32,49 @@ class NotificationsScreen extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
-                  TextButton(
-                    onPressed: () async {
-                      final notifications = await ref.read(notificationsProvider.future);
-                      final api = ref.read(mockApiServiceProvider);
-                      for (final notification in notifications) {
-                        if (!notification.read) {
-                          await api.markNotificationAsRead(notification.id);
-                        }
-                      }
-                      ref.invalidate(notificationsProvider);
-                    },
-                    child: const Text('Tout marquer comme lu'),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          await ref.read(markAllNotificationsAsReadProvider.future);
+                        },
+                        child: const Text('Tout marquer comme lu'),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Supprimer toutes les notifications'),
+                              content: const Text(
+                                'Êtes-vous sûr de vouloir supprimer toutes les notifications ?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Annuler'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Supprimer'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            await ref.read(deleteAllNotificationsProvider.future);
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text('Tout supprimer'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -154,15 +184,57 @@ class _NotificationTile extends ConsumerWidget {
         iconColor = Colors.grey;
     }
 
-    return InkWell(
-      onTap: () async {
-        if (!notification.read) {
-          final api = ref.read(mockApiServiceProvider);
-          await api.markNotificationAsRead(notification.id);
-          ref.invalidate(notificationsProvider);
-        }
+    return Dismissible(
+      key: Key(notification.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Supprimer la notification'),
+            content: const Text(
+              'Êtes-vous sûr de vouloir supprimer cette notification ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+                child: const Text('Supprimer'),
+              ),
+            ],
+          ),
+        ) ?? false;
       },
-      child: Container(
+      onDismissed: (direction) async {
+        await ref.read(deleteNotificationProvider(notification.id).future);
+      },
+      child: InkWell(
+        onTap: () async {
+          if (!notification.read) {
+            await ref.read(markNotificationAsReadProvider(notification.id).future);
+          }
+        },
+        child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -229,8 +301,42 @@ class _NotificationTile extends ConsumerWidget {
                   shape: BoxShape.circle,
                 ),
               ),
+            const SizedBox(width: 8),
+            // Delete button
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 20),
+              color: Colors.grey[600],
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Supprimer la notification'),
+                    content: const Text(
+                      'Êtes-vous sûr de vouloir supprimer cette notification ?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text('Supprimer'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await ref.read(deleteNotificationProvider(notification.id).future);
+                }
+              },
+            ),
           ],
         ),
+      ),
       ),
     );
   }

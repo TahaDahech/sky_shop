@@ -3,10 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/live_event.dart';
 import '../models/product.dart';
 import '../services/mock_api_service.dart';
+import 'connectivity_provider.dart';
+import 'storage_provider.dart';
 
 /// Provider exposing a singleton [MockApiService].
 final mockApiServiceProvider = Provider<MockApiService>((ref) {
-  return MockApiService();
+  final connectivityService = ref.watch(connectivityServiceProvider);
+  final storageService = ref.watch(storageServiceProvider);
+  return MockApiService(
+    connectivityService: connectivityService,
+    storageService: storageService,
+  );
 });
 
 /// Provider that asynchronously loads all live events from the mock API.

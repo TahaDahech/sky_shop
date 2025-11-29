@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'config/theme_config.dart';
 import 'utils/lazy_loader.dart';
+import 'widgets/common/app_wrapper.dart';
 // Home screen is loaded eagerly as it's the initial route
 import 'screens/home/home_screen.dart';
 
@@ -147,6 +148,9 @@ class SkyShopApp extends StatelessWidget {
       title: 'Sky Shop',
       theme: buildLightTheme(),
       routerConfig: appRouter,
+      builder: (context, child) {
+        return AppWrapper(child: child ?? const SizedBox.shrink());
+      },
     );
   }
 }

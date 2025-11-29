@@ -5,6 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_user.dart';
 import '../models/cart.dart';
 import '../models/order.dart';
+import '../models/product.dart';
+import '../models/category.dart';
+import '../models/live_event.dart';
+import '../models/notification.dart' as models;
 
 /// Service for managing local storage using SharedPreferences.
 /// Handles cart persistence and other user interactions.
@@ -16,6 +20,17 @@ class StorageService {
   static const String _userIdKey = 'current_user_id';
   static const String _userDataKey = 'current_user_data';
   static const String _userPreferencesKey = 'user_preferences';
+  
+  // Offline cache keys
+  static const String _cachedProductsKey = 'cached_products';
+  static const String _cachedCategoriesKey = 'cached_categories';
+  static const String _cachedLiveEventsKey = 'cached_live_events';
+  static const String _cachedNotificationsKey = 'cached_notifications';
+  static const String _cachedDataTimestampKey = 'cached_data_timestamp';
+  
+  // User-specific notification keys
+  static const String _notificationsKeyPrefix = 'notifications_';
+  static const String _notificationReadStatusKeyPrefix = 'notification_read_';
 
   /// Gets the SharedPreferences instance.
   Future<SharedPreferences> get _prefs async =>
@@ -376,6 +391,330 @@ class StorageService {
       final prefs = await _prefs;
       final ordersKey = '$_ordersKeyPrefix$userId';
       return await prefs.remove(ordersKey);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== Offline Cache Operations ====================
+
+  /// Saves products to offline cache.
+  Future<bool> cacheProducts(List<Product> products) async {
+    try {
+      final prefs = await _prefs;
+      final productsJson = jsonEncode(products.map((p) => p.toJson()).toList());
+      await prefs.setString(_cachedProductsKey, productsJson);
+      await prefs.setString(_cachedDataTimestampKey, DateTime.now().toIso8601String());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads products from offline cache.
+  Future<List<Product>> loadCachedProducts() async {
+    try {
+      final prefs = await _prefs;
+      final productsJson = prefs.getString(_cachedProductsKey);
+      if (productsJson == null) return [];
+
+      final productsList = jsonDecode(productsJson) as List<dynamic>;
+      return productsList
+          .map((e) => Product.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Saves categories to offline cache.
+  Future<bool> cacheCategories(List<Category> categories) async {
+    try {
+      final prefs = await _prefs;
+      final categoriesJson = jsonEncode(categories.map((c) => c.toJson()).toList());
+      await prefs.setString(_cachedCategoriesKey, categoriesJson);
+      await prefs.setString(_cachedDataTimestampKey, DateTime.now().toIso8601String());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads categories from offline cache.
+  Future<List<Category>> loadCachedCategories() async {
+    try {
+      final prefs = await _prefs;
+      final categoriesJson = prefs.getString(_cachedCategoriesKey);
+      if (categoriesJson == null) return [];
+
+      final categoriesList = jsonDecode(categoriesJson) as List<dynamic>;
+      return categoriesList
+          .map((e) => Category.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Saves live events to offline cache.
+  Future<bool> cacheLiveEvents(List<LiveEvent> events) async {
+    try {
+      final prefs = await _prefs;
+      final eventsJson = jsonEncode(events.map((e) => e.toJson()).toList());
+      await prefs.setString(_cachedLiveEventsKey, eventsJson);
+      await prefs.setString(_cachedDataTimestampKey, DateTime.now().toIso8601String());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads live events from offline cache.
+  Future<List<LiveEvent>> loadCachedLiveEvents() async {
+    try {
+      final prefs = await _prefs;
+      final eventsJson = prefs.getString(_cachedLiveEventsKey);
+      if (eventsJson == null) return [];
+
+      final eventsList = jsonDecode(eventsJson) as List<dynamic>;
+      return eventsList
+          .map((e) => LiveEvent.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Saves notifications to offline cache.
+  Future<bool> cacheNotifications(List<models.AppNotification> notifications) async {
+    try {
+      final prefs = await _prefs;
+      final notificationsJson = jsonEncode(notifications.map((n) => n.toJson()).toList());
+      await prefs.setString(_cachedNotificationsKey, notificationsJson);
+      await prefs.setString(_cachedDataTimestampKey, DateTime.now().toIso8601String());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads notifications from offline cache.
+  Future<List<models.AppNotification>> loadCachedNotifications() async {
+    try {
+      final prefs = await _prefs;
+      final notificationsJson = prefs.getString(_cachedNotificationsKey);
+      if (notificationsJson == null) return [];
+
+      final notificationsList = jsonDecode(notificationsJson) as List<dynamic>;
+      return notificationsList
+          .map((e) => models.AppNotification.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Checks if cached data exists.
+  Future<bool> hasCachedData() async {
+    try {
+      final prefs = await _prefs;
+      final timestamp = prefs.getString(_cachedDataTimestampKey);
+      return timestamp != null && timestamp.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Gets the timestamp of when data was last cached.
+  Future<DateTime?> getCachedDataTimestamp() async {
+    try {
+      final prefs = await _prefs;
+      final timestampStr = prefs.getString(_cachedDataTimestampKey);
+      if (timestampStr == null) return null;
+      return DateTime.parse(timestampStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Clears all cached API data.
+  Future<bool> clearCachedData() async {
+    try {
+      final prefs = await _prefs;
+      await prefs.remove(_cachedProductsKey);
+      await prefs.remove(_cachedCategoriesKey);
+      await prefs.remove(_cachedLiveEventsKey);
+      await prefs.remove(_cachedNotificationsKey);
+      await prefs.remove(_cachedDataTimestampKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ==================== User-Specific Notification Operations ====================
+
+  /// Saves notifications for a specific user.
+  Future<bool> saveUserNotifications(String userId, List<models.AppNotification> notifications) async {
+    try {
+      final prefs = await _prefs;
+      final notificationsKey = '$_notificationsKeyPrefix$userId';
+      final notificationsJson = jsonEncode(notifications.map((n) => n.toJson()).toList());
+      return await prefs.setString(notificationsKey, notificationsJson);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Loads notifications for a specific user.
+  Future<List<models.AppNotification>> loadUserNotifications(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final notificationsKey = '$_notificationsKeyPrefix$userId';
+      final notificationsJson = prefs.getString(notificationsKey);
+      if (notificationsJson == null) return [];
+
+      final notificationsList = jsonDecode(notificationsJson) as List<dynamic>;
+      final notifications = notificationsList
+          .map((e) => models.AppNotification.fromJson(e as Map<String, dynamic>))
+          .toList();
+      
+      // Apply persisted read status
+      return await _applyPersistedReadStatus(userId, notifications);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Deletes a notification for a specific user.
+  Future<bool> deleteUserNotification(String userId, String notificationId) async {
+    try {
+      final notifications = await loadUserNotifications(userId);
+      notifications.removeWhere((n) => n.id == notificationId);
+      return await saveUserNotifications(userId, notifications);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Deletes all notifications for a specific user.
+  Future<bool> clearUserNotifications(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final notificationsKey = '$_notificationsKeyPrefix$userId';
+      return await prefs.remove(notificationsKey);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Marks a notification as read for a specific user (persists read status).
+  Future<bool> markNotificationAsRead(String userId, String notificationId) async {
+    try {
+      final prefs = await _prefs;
+      final readStatusKey = '$_notificationReadStatusKeyPrefix$userId';
+      
+      // Load existing read statuses
+      final readStatusJson = prefs.getString(readStatusKey);
+      final readStatuses = readStatusJson != null
+          ? (jsonDecode(readStatusJson) as Map<String, dynamic>)
+              .map((k, v) => MapEntry(k, v as bool))
+          : <String, bool>{};
+      
+      // Mark as read
+      readStatuses[notificationId] = true;
+      
+      // Save back
+      final updatedJson = jsonEncode(readStatuses);
+      return await prefs.setString(readStatusKey, updatedJson);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Marks all notifications as read for a specific user.
+  Future<bool> markAllNotificationsAsRead(String userId, List<String> notificationIds) async {
+    try {
+      final prefs = await _prefs;
+      final readStatusKey = '$_notificationReadStatusKeyPrefix$userId';
+      
+      // Load existing read statuses
+      final readStatusJson = prefs.getString(readStatusKey);
+      final readStatuses = readStatusJson != null
+          ? (jsonDecode(readStatusJson) as Map<String, dynamic>)
+              .map((k, v) => MapEntry(k, v as bool))
+          : <String, bool>{};
+      
+      // Mark all as read
+      for (final id in notificationIds) {
+        readStatuses[id] = true;
+      }
+      
+      // Save back
+      final updatedJson = jsonEncode(readStatuses);
+      return await prefs.setString(readStatusKey, updatedJson);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Applies persisted read status to notifications.
+  Future<List<models.AppNotification>> _applyPersistedReadStatus(
+    String userId,
+    List<models.AppNotification> notifications,
+  ) async {
+    try {
+      final prefs = await _prefs;
+      final readStatusKey = '$_notificationReadStatusKeyPrefix$userId';
+      final readStatusJson = prefs.getString(readStatusKey);
+      
+      if (readStatusJson == null) return notifications;
+      
+      final readStatuses = (jsonDecode(readStatusJson) as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, v as bool));
+      
+      // Apply read status from storage
+      return notifications.map((notification) {
+        final isRead = readStatuses[notification.id] ?? notification.read;
+        return models.AppNotification(
+          id: notification.id,
+          userId: notification.userId,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          read: isRead,
+          createdAt: notification.createdAt,
+        );
+      }).toList();
+    } catch (e) {
+      return notifications;
+    }
+  }
+
+  /// Gets the read status for a notification.
+  Future<bool> isNotificationRead(String userId, String notificationId) async {
+    try {
+      final prefs = await _prefs;
+      final readStatusKey = '$_notificationReadStatusKeyPrefix$userId';
+      final readStatusJson = prefs.getString(readStatusKey);
+      
+      if (readStatusJson == null) return false;
+      
+      final readStatuses = (jsonDecode(readStatusJson) as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, v as bool));
+      
+      return readStatuses[notificationId] ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Clears read status for a specific user (useful for testing or reset).
+  Future<bool> clearNotificationReadStatus(String userId) async {
+    try {
+      final prefs = await _prefs;
+      final readStatusKey = '$_notificationReadStatusKeyPrefix$userId';
+      return await prefs.remove(readStatusKey);
     } catch (e) {
       return false;
     }

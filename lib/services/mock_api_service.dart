@@ -10,6 +10,8 @@ import '../models/category.dart';
 import '../models/notification.dart' as models;
 import '../models/order.dart';
 import '../models/product.dart';
+import 'connectivity_service.dart';
+import 'storage_service.dart';
 
 /// Exception used to simulate HTTP errors from the mock API.
 class MockApiException implements Exception {
@@ -35,7 +37,15 @@ class MockApiService {
   /// Raw decoded JSON data from `mock-api-data.json`.
   Map<String, dynamic>? _data;
 
-  MockApiService({this.currentUserId = 'user_001'});
+  final ConnectivityService? _connectivityService;
+  final StorageService? _storageService;
+
+  MockApiService({
+    this.currentUserId = 'user_001',
+    ConnectivityService? connectivityService,
+    StorageService? storageService,
+  })  : _connectivityService = connectivityService,
+        _storageService = storageService;
 
   /// Loads and caches the mock JSON data from assets.
   Future<void> _loadMockData() async {
@@ -55,6 +65,16 @@ class MockApiService {
     }
   }
 
+  /// Checks connectivity status.
+  Future<bool> _checkConnectivity() async {
+    final connectivityService = _connectivityService;
+    if (connectivityService == null) {
+      // If no connectivity service provided, assume online
+      return true;
+    }
+    return await connectivityService.checkConnectivity();
+  }
+
   /// Simulates network delay and randomly throws HTTP-like errors.
   Future<T> _withNetworkSimulation<T>(Future<T> Function() body) async {
     // Simulated latency: 200-500ms.
@@ -72,17 +92,59 @@ class MockApiService {
 
   /// Returns all live events.
   Future<List<LiveEvent>> getLiveEvents() async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedEvents = await _storageService?.loadCachedLiveEvents() ?? [];
+      if (cachedEvents.isNotEmpty) {
+        return cachedEvents;
+      }
+      // If no cache and offline, try to load from assets (first time)
+      try {
+        await _loadMockData();
+        final eventsJson = _data!['liveEvents'] as List<dynamic>;
+        final events = eventsJson
+            .map((e) => LiveEvent.fromJson(e as Map<String, dynamic>))
+            .toList();
+        // Cache the data for next time
+        await _storageService?.cacheLiveEvents(events);
+        return events;
+      } catch (e) {
+        // If we can't load from assets either, return empty list
+        return [];
+      }
+    }
+
+    // Online: load from assets and cache
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final eventsJson = _data!['liveEvents'] as List<dynamic>;
-      return eventsJson
+      final events = eventsJson
           .map((e) => LiveEvent.fromJson(e as Map<String, dynamic>))
           .toList();
+      // Cache the data
+      await _storageService?.cacheLiveEvents(events);
+      return events;
     });
   }
 
   /// Returns a single live event by id.
   Future<LiveEvent> getLiveEventById(String id) async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedEvents = await _storageService?.loadCachedLiveEvents() ?? [];
+      final event = cachedEvents.firstWhere(
+        (e) => e.id == id,
+        orElse: () => throw const MockApiException(
+          404,
+          'Événement introuvable',
+        ),
+      );
+      return event;
+    }
+
+    // Online: load from assets
     await _loadMockData();
     return _withNetworkSimulation(() async {
       if (_data == null) {
@@ -105,6 +167,28 @@ class MockApiService {
 
   /// Returns all products associated with a given event id.
   Future<List<Product>> getProducts(String eventId) async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      // Try to get event from cached live events
+      final cachedEvents = await _storageService?.loadCachedLiveEvents() ?? [];
+      final event = cachedEvents.firstWhere(
+        (e) => e.id == eventId,
+        orElse: () => throw const MockApiException(
+          404,
+          'Événement introuvable',
+        ),
+      );
+      
+      // Get products from cache
+      final cachedProducts = await _storageService?.loadCachedProducts() ?? [];
+      final productIds = event.products.toSet();
+      return cachedProducts
+          .where((p) => productIds.contains(p.id))
+          .toList();
+    }
+
+    // Online: load from assets
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final eventsJson = _data!['liveEvents'] as List<dynamic>;
@@ -133,6 +217,21 @@ class MockApiService {
 
   /// Returns a single product by id.
   Future<Product> getProductById(String id) async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedProducts = await _storageService?.loadCachedProducts() ?? [];
+      final product = cachedProducts.firstWhere(
+        (p) => p.id == id,
+        orElse: () => throw const MockApiException(
+          404,
+          'Produit introuvable',
+        ),
+      );
+      return product;
+    }
+
+    // Online: load from assets
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final productsJson = _data!['products'] as List<dynamic>;
@@ -149,13 +248,41 @@ class MockApiService {
 
   /// Returns all products.
   Future<List<Product>> getAllProducts() async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedProducts = await _storageService?.loadCachedProducts() ?? [];
+      if (cachedProducts.isNotEmpty) {
+        return cachedProducts;
+      }
+      // If no cache and offline, try to load from assets (first time)
+      try {
+        await _loadMockData();
+        final productsJson = _data!['products'] as List<dynamic>;
+        final products = productsJson
+            .cast<Map<String, dynamic>>()
+            .map(Product.fromJson)
+            .toList();
+        // Cache the data for next time
+        await _storageService?.cacheProducts(products);
+        return products;
+      } catch (e) {
+        // If we can't load from assets either, return empty list
+        return [];
+      }
+    }
+
+    // Online: load from assets and cache
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final productsJson = _data!['products'] as List<dynamic>;
-      return productsJson
+      final products = productsJson
           .cast<Map<String, dynamic>>()
           .map(Product.fromJson)
           .toList();
+      // Cache the data
+      await _storageService?.cacheProducts(products);
+      return products;
     });
   }
 
@@ -318,18 +445,56 @@ class MockApiService {
 
   /// Returns all categories.
   Future<List<Category>> getCategories() async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedCategories = await _storageService?.loadCachedCategories() ?? [];
+      if (cachedCategories.isNotEmpty) {
+        return cachedCategories;
+      }
+      // If no cache and offline, try to load from assets (first time)
+      try {
+        await _loadMockData();
+        final categoriesJson = _data!['categories'] as List<dynamic>;
+        final categories = categoriesJson
+            .cast<Map<String, dynamic>>()
+            .map(Category.fromJson)
+            .toList();
+        // Cache the data for next time
+        await _storageService?.cacheCategories(categories);
+        return categories;
+      } catch (e) {
+        // If we can't load from assets either, return empty list
+        return [];
+      }
+    }
+
+    // Online: load from assets and cache
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final categoriesJson = _data!['categories'] as List<dynamic>;
-      return categoriesJson
+      final categories = categoriesJson
           .cast<Map<String, dynamic>>()
           .map(Category.fromJson)
           .toList();
+      // Cache the data
+      await _storageService?.cacheCategories(categories);
+      return categories;
     });
   }
 
   /// Returns products filtered by category.
   Future<List<Product>> getProductsByCategory(String categoryName) async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedProducts = await _storageService?.loadCachedProducts() ?? [];
+      return cachedProducts
+          .where((p) => p.category == categoryName)
+          .toList();
+    }
+
+    // Online: load from assets
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final productsJson = _data!['products'] as List<dynamic>;
@@ -343,6 +508,22 @@ class MockApiService {
 
   /// Searches products by name, description, or category.
   Future<List<Product>> searchProducts(String query) async {
+    // Check if offline and try to load from cache
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      final cachedProducts = await _storageService?.loadCachedProducts() ?? [];
+      final lowerQuery = query.toLowerCase();
+      return cachedProducts.where((p) {
+        final name = p.name.toLowerCase();
+        final description = p.description.toLowerCase();
+        final category = p.category.toLowerCase();
+        return name.contains(lowerQuery) ||
+            description.contains(lowerQuery) ||
+            category.contains(lowerQuery);
+      }).toList();
+    }
+
+    // Online: load from assets
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final productsJson = _data!['products'] as List<dynamic>;
@@ -363,21 +544,52 @@ class MockApiService {
   }
 
   /// Returns all notifications for the current user.
+  /// Loads from storage first, then merges with new notifications from API.
   Future<List<models.AppNotification>> getNotifications() async {
+    // Always load persisted notifications first
+    final persistedNotifications = await _storageService?.loadUserNotifications(currentUserId) ?? [];
+    
+    // Check if offline - return persisted notifications only
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      return persistedNotifications;
+    }
+
+    // Online: load from assets and merge with persisted
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final notificationsJson =
           (_data!['notifications'] as List<dynamic>? ?? <dynamic>[])
               .cast<Map<String, dynamic>>();
-      return notificationsJson
+      final apiNotifications = notificationsJson
           .where((n) => n['userId'] == currentUserId)
           .map(models.AppNotification.fromJson)
           .toList();
+      
+      // Merge: Keep persisted notifications, add new ones from API that don't exist
+      final persistedIds = persistedNotifications.map((n) => n.id).toSet();
+      final newNotifications = apiNotifications
+          .where((n) => !persistedIds.contains(n.id))
+          .toList();
+      
+      // Combine: persisted + new, sorted by date (newest first)
+      final allNotifications = [...persistedNotifications, ...newNotifications];
+      allNotifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      // Save merged list to storage
+      await _storageService?.saveUserNotifications(currentUserId, allNotifications);
+      
+      return allNotifications;
     });
   }
 
   /// Marks a notification as read.
+  /// Persists the read status to storage so it persists across sessions.
   Future<void> markNotificationAsRead(String notificationId) async {
+    // Persist read status to storage
+    await _storageService?.markNotificationAsRead(currentUserId, notificationId);
+    
+    // Also update in-memory data if available
     await _loadMockData();
     return _withNetworkSimulation(() async {
       final notificationsJson =
@@ -385,13 +597,29 @@ class MockApiService {
               .cast<Map<String, dynamic>>();
       final notification = notificationsJson.firstWhere(
         (n) => n['id'] == notificationId,
-        orElse: () => throw const MockApiException(
-          404,
-          'Notification introuvable',
-        ),
+        orElse: () => <String, dynamic>{},
       );
-      notification['read'] = true;
+      if (notification.isNotEmpty) {
+        notification['read'] = true;
+      }
     });
+  }
+
+  /// Marks all notifications as read for the current user.
+  Future<void> markAllNotificationsAsRead() async {
+    final notifications = await getNotifications();
+    final notificationIds = notifications.map((n) => n.id).toList();
+    await _storageService?.markAllNotificationsAsRead(currentUserId, notificationIds);
+  }
+
+  /// Deletes a notification for the current user.
+  Future<bool> deleteNotification(String notificationId) async {
+    return await _storageService?.deleteUserNotification(currentUserId, notificationId) ?? false;
+  }
+
+  /// Deletes all notifications for the current user.
+  Future<bool> deleteAllNotifications() async {
+    return await _storageService?.clearUserNotifications(currentUserId) ?? false;
   }
 }
 

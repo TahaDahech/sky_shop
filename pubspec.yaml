@@ -31,6 +31,9 @@ dependencies:
 
   # Local storage
   shared_preferences: ^2.3.3
+  
+  # Connectivity
+  connectivity_plus: ^6.1.0
 
 dev_dependencies:
   flutter_test:
