@@ -7,7 +7,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../models/cart.dart';
 import '../models/live_event.dart';
 import '../models/category.dart';
-import '../models/live_event.dart';
 import '../models/notification.dart' as models;
 import '../models/order.dart';
 import '../models/product.dart';
