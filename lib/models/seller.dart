@@ -14,10 +14,10 @@ class Seller {
 
   factory Seller.fromJson(Map<String, dynamic> json) {
     return Seller(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      storeName: json['storeName'] as String,
-      avatar: json['avatar'] as String,
+      id: (json['id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      storeName: (json['storeName'] as String?) ?? '',
+      avatar: (json['avatar'] as String?) ?? '',
     );
   }
 
